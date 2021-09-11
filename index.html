@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type="text/css">
+body {
+  font-family: sans-serif;
+}
+</style>
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v6.js"></script>
+<div align="center">
+  <input type="checkbox" class="checkbox" value="flash4000" checked><label>flash4000</label>
+  <input type="checkbox" class="checkbox" value="flash1212" ><label>flash1212</label>
+  <input type="checkbox" class="checkbox" value="flash504" ><label>flash504</label>
+  <input type="checkbox" class="checkbox" value="flash400" ><label>flash400</label>
+  <input type="checkbox" class="checkbox" value="flash500" ><label>flash500</label>
+  <input type="checkbox" class="checkbox" value="flash1800" ><label>flash1800</label>
+  <input type="checkbox" class="checkbox" value="flash505" ><label>flash505</label>
+</div>
+<!-- Create a div where the graph will take place -->
+<center><div id="my_dataviz"></div></center>
+
+<script>
+
+// set the dimensions and margins of the graph
+const margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 1200 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+const svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+// List of groups = species here = value of the first column called group -> I show them on the X axis
+// rank
+
+
+// color palette = one color per subgroup
+const color = d3.scaleOrdinal()
+  .range(['red','green'])
+
+
+//Read the data
+d3.csv("x.csv").then(
+  function(data) {
+
+    const groups = data.map(d => (d.rank))
+
+    // Add X axis --> it is a bid format
+    const x = d3.scalePow().exponent(0.75)//scaleLinear()
+      .domain([0, 30000])
+      .range([ 0, width ]);
+    svg.append("g")
+      .attr("transform", `translate(0, ${height})`)
+      .call(d3.axisBottom(x));
+
+    // Add Y axis
+    // name = "flash4000";
+    // max1 = d3.max(data, function (d) { return d["flash4000toeflint"]; });
+    // max2 = d3.max(data, function (d) { return d["flash4000toefldef"]; });
+    // max3 = d3.max(data, function (d) { return d["flash4000"]; });
+    // console.log(max1)
+    // console.log(max2)
+    // console.log(max3)
+    var y = d3.scalePow().exponent(1.)
+    .domain([0, 100.])
+      // .domain([0, 1.1*
+      //   Math.max(
+      //   d3.max(data, function (d) { return d[name+"toeflint"]; }),
+      //   d3.max(data, function (d) { return d[name+"toefldef"]; })
+      //   // d3.max(data, function (d) { return d[name]; })
+      //   )
+        // ])
+      .range([ height, 0 ]);
+
+  // Add a X and Y Axis (Note: orient means the direction that ticks go, not position)
+   var yAxis = d3.axisLeft(y);
+   var yAxisGroup = svg.append("g").call(yAxis);
+
+    // const y = d3.scalePow().exponent(1.)
+    //   .domain([0, 1.2])
+    //   .range([ height, 0 ]);
+    // svg.append("g")
+    //   .call(d3.axisLeft(y));
+
+    // // Add the line
+    // svg.append("path")
+    //   .datum(data)
+    //   .attr("fill", "none")
+    //   .attr("stroke", "steelblue")
+    //   .attr("stroke-width", 1.5)
+    //   .attr("d", d3.line()
+    //     .x(function(d) { return x(d.rank) })
+    //     .y(function(d) { return y(d.eng) })
+    //     )
+
+        // Add the line
+    // svg.append("path")
+    //   .datum(data)
+    //   .attr("fill", "none")
+    //   .attr("stroke", "red")
+    //   .attr("stroke-width", 3)
+    //   .attr("d", d3.line().curve(d3.curveBasis)
+    //     .x(function(d) { return x(d.rank) })
+    //     .y(function(d) { return y(d.toefl) })
+    //     );
+
+    var line3 = svg
+      .append('g')
+      .append("path")
+        .datum(data)
+        .attr("d", d3.line().curve(d3.curveBasis)
+        .x(function(d) { return x(d.rank) })
+        .y(function(d) { return y(d.flash4000) })
+        )
+        .attr("stroke", "blue")
+        .style("stroke-width", 3)
+        .style("fill", "none");
+
+          
+    var line1 = svg
+      .append('g')
+      .append("path")
+        .datum(data)
+        .attr("d", d3.line().curve(d3.curveBasis)
+        .x(function(d) { return x(d.rank) })
+        .y(function(d) { return y(d.flash4000toeflint) })
+        )
+        .attr("stroke", "green")
+        .style("stroke-width", 1)
+        .style("fill", "none");
+
+    var line2 = svg
+      .append('g')
+      .append("path")
+        .datum(data)
+        .attr("d", d3.line().curve(d3.curveBasis)
+        .x(function(d) { return x(d.rank) })
+        .y(function(d) { return y(d.flash4000toefldef) })
+        )
+        .attr("stroke", "red")
+        .style("stroke-width", 1)
+        .style("fill", "none");
+
+
+    // Show the bars
+    // var bars = svg.append("g")
+    //   .selectAll("g")
+    //   // Enter in the stack data = loop key per key = group per group
+    //   .data(d3.stack().keys(["flash4000toefldef", "flash4000toeflint"])(data))
+    //   .join("g")
+    //     .attr("fill", d => color(d.key))
+    //     .selectAll("rect")
+    //     // enter a second time = loop subgroup per subgroup to add all rectangles
+    //     .data(d => d)
+    //     .join("rect")
+    //       .attr("x", d => x(d.data.rank))
+    //       .attr("y", d => y(d[1]))
+    //       .attr("height", d => y(d[0]) - y(d[1]))
+    //       .attr("width",2);
+    // console.log(bars);
+
+    // // Add the line
+    // svg.append("path")
+    //   .datum(data)
+    //   .attr("fill", "none")
+    //   .attr("stroke", "red")
+    //   .attr("stroke-width", 1.5)
+    //   .attr("d", d3.line().curve(d3.curveBasis)
+    //     .x(function(d) { return x(d.rank) })
+    //     .y(function(d) { return y(d.toefl) })
+    //     )
+    // svg.append("circle").attr("cx",800).attr("cy",130).attr("r", 6).style("fill", "red")
+    // svg.append("text").attr("x", 820).attr("y", 130).text("TPO").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
+     // This function is gonna change the opacity and size of selected and unselected circles
+    function update(){
+      const active_flashcards = [];
+      // For each check box:
+      d3.selectAll(".checkbox").each(function(d){
+        cb = d3.select(this);
+        if(cb.property("checked")){
+          active_flashcards.push(cb.property("value"))
+        }
+      })
+      active_flashcards.sort();
+      name = active_flashcards.join('_');
+      console.log(name);
+
+      // Add the line
+      // svg.append("path")
+      //   .datum(data)
+      //   .attr("fill", "none")
+      //   .attr("stroke", "orange")
+      //   .attr("stroke-width", 1.5)
+      //   .attr("d", d3.line().curve(d3.curveBasis)
+      //     .x(function(d) { return x(d.rank) })
+      //     .y(function(d) { return y(d[name]) })
+      //     );
+      y.domain([0, 1.1*Math.max(
+        d3.max(data, function (d) { return d[name+"toeflint"]; }),
+        d3.max(data, function (d) { return d[name+"toefldef"]; }),
+        d3.max(data, function (d) { return d[name]; })
+        )])
+      yAxisGroup.transition().duration(1000).call(yAxis);
+
+      line1
+          .datum(data)
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line().curve(d3.curveBasis)
+          .x(function(d) { return x(d.rank) })
+          .y(function(d) { return y(d[name+"toeflint"]) })
+          )
+          
+      line2
+          .datum(data)
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line().curve(d3.curveBasis)
+          .x(function(d) { return x(d.rank) })
+          .y(function(d) { return y(d[name+"toefldef"]) })
+          )
+          
+      line3
+          .datum(data)
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line().curve(d3.curveBasis)
+          .x(function(d) { return x(d.rank) })
+          .y(function(d) { return y(d[name]) })
+          )
+
+      // bars.remove()
+      // bars = svg.append("g")
+      //   .selectAll("g")
+      //   // Enter in the stack data = loop key per key = group per group
+      //   .data(d3.stack().keys([name+"toefldef", name+"toeflint"])(data))
+      //   .join("g")
+      //     .attr("fill", d => color(d.key))
+      //     .selectAll("rect")
+      //     // enter a second time = loop subgroup per subgroup to add all rectangles
+      //     .data(d => d)
+      //     //   .transition()
+      //     // .duration(1000)
+      //     .join("rect")
+            
+      //       .attr("x", d => x(d.data.rank))
+      //       .attr("y", d => y(d[1]))
+      //       .attr("height", d => y(d[0]) - y(d[1]))
+      //       .attr("width",3);
+    
+      
+
+
+    }
+
+    // When a button change, I run the update function
+    d3.selectAll(".checkbox").on("change",update);
+
+    // And I initialize it at the beginning
+    // update()
+
+
+//     // Add the line
+//     svg.append("path")
+//       .datum(data)
+//       .attr("fill", "none")
+//       .attr("stroke", "orange")
+//       .attr("stroke-width", 1.5)
+//       .attr("d", d3.line().curve(d3.curveBasis)
+//         .x(function(d) { return x(d.rank) })
+//         .y(function(d) { return y(d.flash4000) })
+//         )
+//     svg.append("circle").attr("cx",800).attr("cy",160).attr("r", 6).style("fill", "orange")
+//     svg.append("text").attr("x", 820).attr("y", 160).text("4000").style("font-size", "15px").attr("alignment-baseline","middle")
+
+//     // Add the line
+//     svg.append("path")
+//       .datum(data)
+//       .attr("fill", "none")
+//       .attr("stroke", "green")
+//       .attr("stroke-width", 1.5)
+//       .attr("d", d3.line().curve(d3.curveBasis)
+//         .x(function(d) { return x(d.rank) })
+//         .y(function(d) { return y(d.flash504) })
+//         )
+//     svg.append("circle").attr("cx",800).attr("cy",190).attr("r", 6).style("fill", "green")
+//     svg.append("text").attr("x", 820).attr("y", 190).text("504").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
+//     // Add the line
+//     svg.append("path")
+//       .datum(data)
+//       .attr("fill", "none")
+//       .attr("stroke", "pink")
+//       .attr("stroke-width", 1.5)
+//       .attr("d", d3.line().curve(d3.curveBasis)
+//         .x(function(d) { return x(d.rank) })
+//         .y(function(d) { return y(d.flash505) })
+//         )
+//     svg.append("circle").attr("cx",800).attr("cy",220).attr("r", 6).style("fill", "pink")
+//     svg.append("text").attr("x", 820).attr("y", 220).text("505").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
+//     // Add the line
+//     svg.append("path")
+//       .datum(data)
+//       .attr("fill", "none")
+//       .attr("stroke", "cyan")
+//       .attr("stroke-width", 1.5)
+//       .attr("d", d3.line().curve(d3.curveBasis)
+//         .x(function(d) { return x(d.rank) })
+//         .y(function(d) { return y(d.flash1212) })
+//         )
+//     svg.append("circle").attr("cx",800).attr("cy",250).attr("r", 6).style("fill", "cyan")
+//     svg.append("text").attr("x", 820).attr("y", 250).text("1212").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
+
+
+  // const subgroups = ["flash4000toefldef", "flash4000toeflint"]
+
+
+
+  // //stack the data? --> stack per subgroup
+  // const stackedData = d3.stack()
+  //   .keys(subgroups)
+  //   (data)
+
+  // // Show the bars
+  // svg.append("g")
+  //   .selectAll("g")
+  //   // Enter in the stack data = loop key per key = group per group
+  //   .data(stackedData)
+  //   .join("g")
+  //     .attr("fill", d => color(d.key))
+  //     .selectAll("rect")
+  //     // enter a second time = loop subgroup per subgroup to add all rectangles
+  //     .data(d => d)
+  //     .join("rect")
+  //       .attr("x", d => x(d.data.rank))
+  //       .attr("y", d => y(d[1]))
+  //       .attr("height", d => y(d[0]) - y(d[1]))
+  //       .attr("width",3)
+})
+</script>
+<!--//scalePow().exponent(1 / 5)-->
+
+
+<!--  // Add the line-->
+<!--  svg-->
+<!--    .append("path")-->
+<!--    .datum(data)-->
+<!--    .attr("fill", "none")-->
+<!--    .attr("stroke", "red")-->
+<!--    .attr("stroke-width", 1.5)-->
+<!--    .attr("d", d3.line()-->
+<!--        //.curve(d3.curveBundle.beta(0.5))-->
+<!--        // .curve(d3.curveBasis)-->
+<!--      .x(function(d) { return x(d.rank) })-->
+<!--      .y(function(d) { return y(d.tpo) })-->
+<!--      )-->
+
+
+<!--  // Add the line-->
+<!--  svg-->
+<!--    .append("path")-->
+<!--    .datum(data)-->
+<!--    .attr("fill", "none")-->
+<!--    .attr("stroke", "steelblue")-->
+<!--    .attr("stroke-width", 1.5)-->
+<!--    .attr("d", d3.line()-->
+<!--      // .curve(d3.curveBasis)-->
+<!--      //.curve(d3.curveBundle.beta(0.5))-->
+<!--      .x(function(d) { return x(d.rank) })-->
+<!--      .y(function(d) { return y(d.eng) })-->
+<!--      )-->
